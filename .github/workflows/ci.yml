@@ -3,31 +3,82 @@ on: [push, pull_request]
 
 jobs:
   test:
+    name: "Ruby: ${{ matrix.ruby }}, ActiveSupport: ${{ matrix.env.ACTIVE_SUPPORT_VERSION }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [2.5, 2.6, 2.7]
-        bundler: [default]
-        gemfile:
-          - active_support_5
-          - active_support_6
         include:
-          - { ruby: "2.3", gemfile: "active_support_3", bundler: "1" }
-          - { ruby: "2.4", gemfile: "active_support_4", bundler: "1" }
-          - { ruby: "2.5", gemfile: "active_support_4", bundler: "1" }
-          - { ruby: "3.0", gemfile: "active_support_6", bundler: "default" }
+          # ACTIVE_SUPPORT 7.0 builds >= 2.7
+         - ruby: 3.0
+           gemfile: active_support_7
+           bundler: 2
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 7'
+         - ruby: 2.7
+           gemfile: active_support_7
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 7'
 
-    env:
-      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
+          # ACTIVE_SUPPORT 6.1 builds >= 2.5
+         - ruby: 3.0
+           gemfile: active_support_6
+           bundler: 2
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 6'
+         - ruby: 2.7
+           gemfile: active_support_6
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 6'
+         - ruby: 2.6
+           gemfile: active_support_6
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 6'
+         - ruby: 2.5
+           gemfile: active_support_6
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 6'
+
+          # ACTIVE_SUPPORT 5.2 builds >= 2.2.2
+         - ruby: 2.7
+           gemfile: active_support_5
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 5'
+         - ruby: 2.6
+           gemfile: active_support_5
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 5'
+         - ruby: 2.5
+           gemfile: active_support_5
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 5'
+         - ruby: 2.4
+           gemfile: active_support_5
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 5'
+         - ruby: 2.3
+           gemfile: active_support_5
+           bundler: 1
+           env:
+             ACTIVE_SUPPORT_VERSION: '~> 5'
+
+    env: ${{ matrix.env }}
     steps:
       # https://github.com/marketplace/actions/checkout
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          bundler: ${{ matrix.bundler }}
-          bundler-cache: true # runs `bundle install` and caches gems automatically
+          rubygems: latest
+          bundler-cache: true
       - name: Run tests
         run: bundle exec rake
